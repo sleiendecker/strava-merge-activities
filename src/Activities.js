@@ -1,34 +1,25 @@
 import React, {useEffect } from "react";
+import {PropTypes} from "prop-types";
 import axios from "axios";
 import queryString from 'query-string';
-import {useParams} from "react-router-dom";
-
-
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import Button from '@mui/material/Button';
 
-import {useAuth0 } from "@auth0/auth0-react";
 
 
 const theme = createTheme();
 
 
 function Activities() {
-  // const [activities, setActivities] = useState([]);
 
-  const {loginWithRedirect} = useAuth0();
-  const params = useParams();
-  console.log('params:', params);
-
+  const baseUrl = 'https://www.strava.com';
 
   useEffect(() => {
     
     async function fetchData() {
-      const baseUrl = 'https://www.strava.com';
       const path = 'oauth/token';
       const params = queryString.stringify({
         client_id: process.env.REACT_APP_CLIENT_ID,
-        client_secret: process.env.REACT_APP_CLIENTSECRET,
+        client_secret: process.env.REACT_APP_CLIENT_SECRET,
         refresh_token: process.env.REACT_APP_REFRESHTOKEN,
         grant_type: 'refresh_token',
         scope: [
@@ -37,26 +28,48 @@ function Activities() {
         ]
       });
 
+      // https://www.strava.com/oauth/authorize?client_id=76362&response_type=code&redirect_uri=http://localhost:3000/exchange_token&approval_prompt=force&scope=read_all,profile:read_all,activity:read_all
+
+      
+      // const redirectUri = queryString.stringify({
+      //   exchange_token: true,
+      //   approve_prompt: 'force',
+      //   scope
+
+      // });
+      
+      
+
       const authUrl = `${baseUrl}/${path}?${params}`;
       const newTokenData = await axios.post(authUrl)
       const accessToken = newTokenData.data.access_token;
 
       const activitiesUrl = `${baseUrl}/api/v3/athlete/activities?per_page=100&access_token=${accessToken}`;
       const activityResponse = await axios.get(activitiesUrl);
-      console.log({activityResponse});
+
     }
     // fetchData();
   }, []);
+  // https://www.strava.com/oauth/authorize?client_id=76362&response_type=code&redirect_uri=http://localhost:3000/exchange_token&approval_prompt=force&scope=read_all,profile:read_all,activity:read_all
+  const redirectUri = 'http://localhost:3000/exchange_token&approval_prompt=force&scope=read_all,profile:read_all,activity:read_all'
+
+  const redirectParams = queryString.stringify({
+    client_id: process.env.REACT_APP_CLIENT_ID,
+    response_type: 'code'
+  });
+  const redirectPath = 'oauth/authorize'
+  // const redirectUrl = `${baseUrl}/${redirectPath}?${redirectParams}&redirect_uri=${redirectUri}`;
+  const redirectUrl = 'https://www.strava.com/oauth/authorize?client_id=76362&response_type=code&redirect_uri=http://localhost:3000/exchange_token&approval_prompt=force&scope=read_all,profile:read_all,activity:read_all'
+  
 
   return (
     <ThemeProvider theme={theme}>
-      <Button
-        variant="contained"
-        onClick={() => loginWithRedirect()}
-      >
-        Hello World
-      </Button>
-      <p>testing</p>
+      <p>
+
+          Fetch Activities
+      </p>
+        
+
     </ThemeProvider>
   );
 
